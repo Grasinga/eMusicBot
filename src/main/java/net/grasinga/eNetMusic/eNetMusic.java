@@ -24,13 +24,13 @@ import java.util.List;
 
 /**
  * eNetMusic is a music bot that brings basic music functionality to Discord.<br>
- * Created by <a href="http://grasinga.net/">Grasinga</a> using
- * <a href="https://github.com/DV8FromTheWorld/JDA">JDA</a> and
- * <a href="https://github.com/DV8FromTheWorld/JDA-Player">JDA-Player</a>
+ * Created by <a href="http://grasinga.net/" target="_blank">Grasinga</a> using
+ * <a href="https://github.com/DV8FromTheWorld/JDA" target="_blank">JDA</a> and
+ * <a href="https://github.com/DV8FromTheWorld/JDA-Player" target="_blank">JDA-Player</a>
  *
- * @see <a href="https://github.com/Grasinga">Grasinga's GitHub</a>
- * @see <a href="https://github.com/DV8FromTheWorld/JDA">JDA</a>
- * @see <a href="https://github.com/DV8FromTheWorld/JDA-Player">JDA-Player</a>
+ * @see <a href="https://github.com/Grasinga" target="_blank">Grasinga's GitHub</a>
+ * @see <a href="https://github.com/DV8FromTheWorld/JDA" target="_blank">JDA</a>
+ * @see <a href="https://github.com/DV8FromTheWorld/JDA-Player" target="_blank">JDA-Player</a>
  */
 class eNetMusic extends ListenerAdapter
 {
