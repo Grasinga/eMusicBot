@@ -110,7 +110,9 @@ class YouTubeSearch {
 
     /**
      * Returns the video id based on Iterator.
+     *
      * @param iteratorSearchResults Iterator of SearchResults to print
+     * @return Video id of the first video found in a search.
      * @see YouTubeSearch#videoIdSearch(String)
      */
     private static String getVideo(Iterator<SearchResult> iteratorSearchResults) {

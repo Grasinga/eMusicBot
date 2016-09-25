@@ -6,7 +6,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Radio Class
  * Gets an internet radio station's information.
  *
  * @see eNetMusic#playRadio(TextChannel, String)

@@ -23,8 +23,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * eNetMusic is a music bot that brings basic music functionality to Discord.
- * Created by <a href="http://grasinga.net/">Grasinga</a> using JDA & JDA-Player.
+ * eNetMusic is a music bot that brings basic music functionality to Discord.<br>
+ * Created by <a href="http://grasinga.net/">Grasinga</a> using
+ * <a href="https://github.com/DV8FromTheWorld/JDA">JDA</a> and
+ * <a href="https://github.com/DV8FromTheWorld/JDA-Player">JDA-Player</a>
  *
  * @see <a href="https://github.com/Grasinga">Grasinga's GitHub</a>
  * @see <a href="https://github.com/DV8FromTheWorld/JDA">JDA</a>
@@ -48,9 +50,9 @@ class eNetMusic extends ListenerAdapter
     private HashMap<String,String> radioStations = new HashMap<>();
 
     /**
-     * Pre-loads some radio stations into radioStations.
-     *
-     * HashMap<String,String> radioStations;
+     * Pre-loads some radio stations into radioStations.<br>
+     *<br>
+     * radioStations = HashMap of two Strings<br>
      * First string is the radio station name, second string is the mp3 stream link.
      */
     eNetMusic(){
@@ -68,22 +70,22 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Checks for a command anytime a guild message is received.
-     * Creates parameters for all functions that run commands.
-     * Parameters are as follows:
-     *      <i>guild<i/> = Guild of the event's message.
-     *      <i>channel<i/> = TextChannel of the event's message.
-     *      <i>message<i/> = The event's message.
-     *      <i>commandline<i/> = The command and arguments of the event's message.
-     *      <i>command<i/> = The command of the event's message.
-     *      <i>audioManager<i/> = The guild's AudioManager.
+     * Checks for a command anytime a guild message is received.<br>
+     * Creates parameters for all functions that run commands.<br>
+     * Parameters are as follows:<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;guild = Guild of the event's message.<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;channel = TextChannel of the event's message.<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;message = The event's message.<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;commandline = The command and arguments of the event's message.<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;command = The command of the event's message.<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;audioManager = The guild's AudioManager.<br>
      *
-     * <b>Runs any functions that the command specifies by passing in the
+     * Runs any functions that the command specifies by passing in the
      * above parameters where it's appropriate. (This is the main function
-     * that calls all the other functions.)<b/>
+     * that calls all the other functions.)<br>
      *
      * If the MusicPlayer is not already created;
-     * creates the MusicPlayer via <i>createMusicPlayer(audioManager)<i/>.
+     * creates the MusicPlayer via createMusicPlayer(audioManager).<br>
      *
      * @param event Contains all the info needed for running commands.
      * @see net.dv8tion.jda.events.message.guild.GuildMessageReceivedEvent
@@ -203,8 +205,8 @@ class eNetMusic extends ListenerAdapter
 
     /**
      * Runs before the '/play' command.
-     * Checks to see if the bot is connected to the VoiceChannel of the <i>message<i/>'s author.
-     * If it isn't, it connects to the VoiceChannel of the <i>message<i/>'s author.
+     * Checks to see if the bot is connected to the VoiceChannel of the message's author.
+     * If it isn't, it connects to the VoiceChannel of the message's author.
      *
      * @param guild Used to get the guild's voice channels.
      * @param message Used to get the message's author.
@@ -218,7 +220,7 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Joins a voice channel based off of <i>message<i/>'s contents.
+     * Joins a voice channel based off of message's contents.
      *
      * @param manager AudioManager used to close connection if connected to another voice channel.
      * @param guild Used to get the guild's VoiceChannel(s).
@@ -306,9 +308,9 @@ class eNetMusic extends ListenerAdapter
      * Argument expected is a valid YouTube link, SoundCloud link, or
      * a search term. If the YouTube or SoundCloud link is invalid, the
      * function will assume it is a search term. The search term is
-     * then sent to <i>getVideoId(term)<i/>.
-     *
-     * Link is then passed into <i>addToPlaylist()<i/>.
+     * then sent to getVideoId(term).<br>
+     * <br>
+     * Link is then passed into addToPlaylist().
      *
      * @param channel Used to get the TextChannel the command was entered on.
      * @param commandline Used to get the arguments of the command.
@@ -338,12 +340,12 @@ class eNetMusic extends ListenerAdapter
     /**
      * Gets a radio station from the given argument.
      * Argument expected is a valid mp3 stream source link or a
-     * search term to check for in <i>radioStations<i/>. If link is invalid
+     * search term to check for in radioStations. If link is invalid
      * the function assumes it to be a search term. If the search term
-     * does not match a station in <i>radioStations<i/>, then the default
-     * radio station is selected instead.
-     *
-     * Station link is then passed into <i>addToPlaylist()<i/>.
+     * does not match a station in radioStations, then the default
+     * radio station is selected instead.<br>
+     * <br>
+     * Station link is then passed into addToPlaylist().
      *
      * @param channel Used to get the TextChannel the command was entered on.
      * @param commandline Used to get the arguments of the command.
@@ -385,7 +387,7 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Receives an audio link from <i>playNonRadio()<i/> or <i>playRadio()<i/>.
+     * Receives an audio link from playNonRadio() or playRadio().
      * Plays the provided link's song if nothing is playing. If there is a
      * current song playing, the provided audio link gets placed into the playlist.
      *
@@ -481,7 +483,7 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Sends the current playlist to <i>channel<i/> as a message.
+     * Sends the current playlist to channel as a message.
      *
      * @param player Used to get the current MusicPlayer.
      * @param channel Used to get the TextChannel to send the playlist to.
@@ -563,7 +565,7 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Sends the currently playing song's info to <i>channel<i/> as a message.
+     * Sends the currently playing song's info to channel as a message.
      *
      * @param player Used to get the current MusicPlayer.
      * @param channel Used to get the TextChannel to send the message to.
@@ -626,7 +628,7 @@ class eNetMusic extends ListenerAdapter
 
     /**
      * Skips the currently playing song if there is one playing and sends a
-     * message to <i>channel<i/> that the song has/hasn't been skipped.
+     * message to channel that the song has/hasn't been skipped.
      *
      * @param player Used to get the current MusicPlayer.
      * @param channel Used to get the TextChannel to send the message to.
@@ -639,7 +641,7 @@ class eNetMusic extends ListenerAdapter
 
     /**
      * Toggles the current MusicPlayer to repeat its playlist and sends
-     * a message to <i>channel</i> stating if it is on or off.
+     * a message to channel stating if it is on or off.
      *
      * @param player Used to get the current MusicPlayer.
      * @param channel Used to get the TextChannel to send the message to.
@@ -660,7 +662,7 @@ class eNetMusic extends ListenerAdapter
 
     /**
      * Toggles the current MusicPlayer to shuffle its playlist and sends
-     * a message to <i>channel</i> stating if it is on or off.
+     * a message to channel stating if it is on or off.
      *
      * @param player Used to get the current MusicPlayer.
      * @param channel Used to get the TextChannel to send the message to.
@@ -685,7 +687,7 @@ class eNetMusic extends ListenerAdapter
      * song if possible. Valid arguments are: the position of the song in
      * the playlist's queue (number), audio links, or a search term.
      *
-     * Sends a message to <i>channel</i> notifying if the song was removed.
+     * Sends a message to channel notifying if the song was removed.
      *
      * @param player Used to get the current MusicPlayer.
      * @param channel Used to get the TextChannel to send the message to.
@@ -797,7 +799,7 @@ class eNetMusic extends ListenerAdapter
 
     /**
      * Clears the current playlist if possible and sends a message to
-     * <i>channel</i> saying if it was cleared.
+     * channel saying if it was cleared.
      *
      * @param player Used to get the current MusicPlayer.
      * @param channel Used to get the TextChannel to send the message to.
@@ -811,7 +813,7 @@ class eNetMusic extends ListenerAdapter
     /**
      * Resets the MusicPlayer by stopping the current song and removing
      * all songs in the playlist (including the stopped song). Then sends
-     * a message to <i>channel</i> to notify that it has been reset.
+     * a message to channel to notify that it has been reset.
      *
      * @param player Used to get the current MusicPlayer.
      * @param manager Used to get the current SendingHandler and reset it.
@@ -827,7 +829,7 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Pauses the current playback and sends a message to <i>channel</i>
+     * Pauses the current playback and sends a message to channel
      * saying it has been paused.
      *
      * @param player Used to get the current playback of MusicPlayer.
@@ -840,7 +842,7 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Stops current playback completely and sends a message to <i>channel</i>
+     * Stops current playback completely and sends a message to channel
      * saying it has been stopped.
      *
      * @param player Used to get the current playback of MusicPlayer.
@@ -854,7 +856,7 @@ class eNetMusic extends ListenerAdapter
 
     /**
      * Restarts current song if playing, otherwise starts last played song if possible
-     * and sends a message to <i>channel</i> saying it has been restarted.
+     * and sends a message to channel saying it has been restarted.
      *
      * @param player Used to get the current song of MusicPlayer.
      * @param channel Used to get the TextChannel to send the message to.
@@ -881,7 +883,7 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Mutes the current playback and sends a message to <i>channel</i>
+     * Mutes the current playback and sends a message to channel
      * saying it has been muted or that it was already muted.
      *
      * @param player Used to get the current playback of MusicPlayer.
@@ -898,7 +900,7 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Unmutes the current playback and sends a message to <i>channel</i>
+     * Unmutes the current playback and sends a message to channel
      * saying it has been unmuted or that it was already unmuted.
      *
      * @param player Used to get the current playback of MusicPlayer.
@@ -914,7 +916,7 @@ class eNetMusic extends ListenerAdapter
         muted = false;}
 
     /**
-     * Gets the current volume and sends it to <i>channel</i>
+     * Gets the current volume and sends it to channel
      * as a message.
      *
      * @param channel Used to get the TextChannel to send the message to.
@@ -923,7 +925,7 @@ class eNetMusic extends ListenerAdapter
     private void getVolume(TextChannel channel){channel.sendMessage("**Current Volume:** " + df.format(playerVolume * 100) + "%");}
 
     /**
-     * Sets the volume of the current MusicPlayer and then sends it to <i>channel</i>
+     * Sets the volume of the current MusicPlayer and then sends it to channel
      * as a message.
      *
      * @param player Used to get the current MusicPlayer.
@@ -951,7 +953,7 @@ class eNetMusic extends ListenerAdapter
      * Function that gets called if there was any sort of error with the
      * commands from onGuildMessageReceived().
      *
-     * Prints the StackTrace of <i>e</i> and notifies both the user
+     * Prints the StackTrace of e and notifies both the user
      * of the command and the bot managers of the guild.
      *
      * @param e General Exception that occurred with the command.
@@ -978,8 +980,8 @@ class eNetMusic extends ListenerAdapter
     /**
      * Function runs after the '/join' command is entered.
      *
-     * Places the bot in the VoiceChannel specified by <i>chanName</i> argument if possible.
-     * If the VoiceChannel cannot be joined because it doesn't exist, a message is sent to <i>channel</i>
+     * Places the bot in the VoiceChannel specified by chanName argument if possible.
+     * If the VoiceChannel cannot be joined because it doesn't exist, a message is sent to channel
      * to notify the user of the command.
      *
      * @param guild Used to get the current guild where the Exception occurred.
@@ -1003,7 +1005,7 @@ class eNetMusic extends ListenerAdapter
     }
 
     /**
-     * Function that gets called from <i>playNonRadio()<i/> if a search term was used
+     * Function that gets called from playNonRadio() if a search term was used
      * instead of an audio link.
      *
      * @param videoName Search term that is passed into the YouTubeSearch function.
