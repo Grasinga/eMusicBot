@@ -1,4 +1,4 @@
-package net.grasinga.discord.bots;
+package net.grasinga.discord.bots.eMusic;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -20,8 +20,6 @@ import java.util.Properties;
 
 /**
  * Gets the first YouTube video from a search term.
- *
- * @see eNetMusic#getVideoId(String)
  */
 class YouTubeSearch {
     private final static Charset ENCODING = StandardCharsets.UTF_8;
@@ -125,4 +123,3 @@ class YouTubeSearch {
         return rId.getVideoId();
     }
 }
-
