@@ -30,7 +30,7 @@ class GuildMusicManager {
      * Returns the {@link AudioPlayer}.
      * @return The {@link AudioPlayer}.
      */
-    public AudioPlayer getPlayer() {
+    AudioPlayer getPlayer() {
         return player;
     }
 

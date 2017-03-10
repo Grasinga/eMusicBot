@@ -145,7 +145,7 @@ class eMusic extends ListenerAdapter {
     /**
      * Sets the bot management role and loads the {@link #playerManager}.
      */
-    private eMusic(){
+    private eMusic() {
         this.musicManagers = new HashMap<>();
 
         this.playerManager = new DefaultAudioPlayerManager();
@@ -182,7 +182,7 @@ class eMusic extends ListenerAdapter {
      *
      * @param event Contains all the info needed for running commands.
      */
-    public void onGuildMessageReceived(GuildMessageReceivedEvent event){
+    public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
         // Set argument variables for the current event.
         Guild guild = event.getGuild();
         TextChannel channel = event.getChannel();
@@ -256,6 +256,12 @@ class eMusic extends ListenerAdapter {
                 case "-reset":
                     reset(channel);
                     break;
+                case "-radio":
+                    if(parts.length == 2)
+                        radio(message, channel, parts[1]);
+                    else
+                        channel.sendMessage("Usage: -radio [Station URL | Search Term]").queue();
+                    break;
                 case "?emusic":
                     sendCommands(event.getAuthor());
                     break;
@@ -281,7 +287,10 @@ class eMusic extends ListenerAdapter {
         playerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                channel.sendMessage("Added **" + track.getInfo().title + "** to queue.").queue();
+                if(track.getInfo().isStream && track.getInfo().title.toLowerCase().contains("unknown"))
+                    channel.sendMessage("Added stream **" + track.getInfo().identifier + "** to queue.").queue();
+                else
+                    channel.sendMessage("Added **" + track.getInfo().title + "** to queue.").queue();
 
                 setTrackLoaded(true);
                 play(command, musicManager, track);
@@ -336,7 +345,10 @@ class eMusic extends ListenerAdapter {
                     playerManager.loadItemOrdered(musicManager, youtubeLink, new AudioLoadResultHandler() {
                         @Override
                         public void trackLoaded(AudioTrack track) {
-                            channel.sendMessage("Added **" + track.getInfo().title + "** to queue.").queue();
+                            if(track.getInfo().isStream && track.getInfo().title.toLowerCase().contains("unknown"))
+                                channel.sendMessage("Added stream **" + track.getInfo().identifier + "** to queue.").queue();
+                            else
+                                channel.sendMessage("Added **" + track.getInfo().title + "** to queue.").queue();
 
                             setTrackLoaded(true);
                             play(command, musicManager, track);
@@ -480,11 +492,28 @@ class eMusic extends ListenerAdapter {
             long guildId = Long.parseLong(channel.getGuild().getId());
             currentAudioTrack = musicManagers.get(guildId).getPlayer().getPlayingTrack();
         }
-        if(currentAudioTrack != null)
-            channel.sendMessage(
-                    "**Song:** " + currentAudioTrack.getInfo().title
-                            + "\n**Artist:** " + currentAudioTrack.getInfo().author
-            ).queue();
+        if(currentAudioTrack != null) {
+            if(currentAudioTrack.getInfo().isStream) {
+                String song = InternetRadioParser.getCurrentSong(currentAudioTrack.getInfo().identifier);
+                String artist = InternetRadioParser.getCurrentSongArtist(currentAudioTrack.getInfo().identifier);
+                if(song.contains("Was unable to get JSON data"))
+                    song = currentAudioTrack.getInfo().title;
+                if(artist.contains("Was unable to get JSON data"))
+                    artist = currentAudioTrack.getInfo().author;
+                if(song.toLowerCase().contains("unknown") && artist.toLowerCase().contains("unknown"))
+                    channel.sendMessage("**Radio Station:** " + currentAudioTrack.getInfo().identifier).queue();
+                else
+                    channel.sendMessage(
+                            "**Song:** " + song
+                                    + "\n**Artist:** " + artist
+                    ).queue();
+            }
+            else
+                channel.sendMessage(
+                        "**Song:** " + currentAudioTrack.getInfo().title
+                                + "\n**Artist:** " + currentAudioTrack.getInfo().author
+                ).queue();
+        }
         else
             channel.sendMessage("Nothing is playing currently.").queue();
     }
@@ -502,8 +531,8 @@ class eMusic extends ListenerAdapter {
 
         String list = "";
         long total = 0;
-        String title = "";
-        String time = "";
+        String title;
+        String time;
         for(AudioTrack track : musicManager.scheduler.queue) {
             long duration = track.getDuration();
             total += duration;
@@ -643,6 +672,25 @@ class eMusic extends ListenerAdapter {
     }
 
     /**
+     * Allows radio stations to be played with a link or by search term. If it's by a search term, then the radio station
+     * is selected if {@link #radioStations} contains a key that has the genre in it. (Normal music links will also
+     * still work as if the -play command was used).
+     * @param message Passed through to {@link #load(Message, TextChannel, String)}.
+     * @param channel {@link TextChannel} that messages will be set to.
+     * @param station Radio station URL or music genre.
+     */
+    private void radio(Message message, TextChannel channel, String station) {
+        if(station.toLowerCase().contains("http://") || station.toLowerCase().contains("https://"))
+            load(message, channel, station);
+        else {
+            for(String key : radioStations.keySet())
+                if(key.toLowerCase().contains(station.toLowerCase()))
+                    station = radioStations.get(key);
+            load(message, channel, station);
+        }
+    }
+
+    /**
      * Checks to see if the bot is connected to the VoiceChannel of the message's author.
      * If it isn't, it connects to the VoiceChannel of the message's author.
      *
@@ -651,7 +699,7 @@ class eMusic extends ListenerAdapter {
      * @param channel Message author's text channel where command was entered.
      * @see eMusic#onGuildMessageReceived(GuildMessageReceivedEvent)
      */
-    private void checkVoiceConnection(Guild guild, TextChannel channel, Message message){
+    private void checkVoiceConnection(Guild guild, TextChannel channel, Message message) {
         if (!guild.getAudioManager().isConnected())
             for (VoiceChannel vc : guild.getVoiceChannels()) // Connect to user's channel.
                 vc.getMembers().stream().filter(m -> m.getUser().equals(message.getAuthor()))
@@ -667,7 +715,7 @@ class eMusic extends ListenerAdapter {
      * @param message Used to get content of message and the message's author.
      * @see eMusic#onGuildMessageReceived(GuildMessageReceivedEvent)
      */
-    private void joinVoice(AudioManager manager, Guild guild, TextChannel channel, Message message){
+    private void joinVoice(AudioManager manager, Guild guild, TextChannel channel, Message message) {
         String command = message.getContent();
         boolean validChannel = false;
 
@@ -730,7 +778,7 @@ class eMusic extends ListenerAdapter {
      * @param message Used to get the full message that caused the Exception.
      * @see eMusic#onGuildMessageReceived(GuildMessageReceivedEvent)
      */
-    private void commandException(Exception e, Guild guild, TextChannel channel, Message message){
+    private void commandException(Exception e, Guild guild, TextChannel channel, Message message) {
         channel.sendMessage("An ***ERROR*** occurred when trying to execute command: "
                 + message.getContent()
                 + "\nAll users with the bot maintenance role have been notified. Check '?eMusic' in the mean time.").queue();
@@ -759,7 +807,7 @@ class eMusic extends ListenerAdapter {
      * @param chanName VoiceChannel to join.
      * @see eMusic#joinVoice(AudioManager, Guild, TextChannel, Message)
      */
-    private void setVoiceChannel(Guild guild, TextChannel channel, String chanName){
+    private void setVoiceChannel(Guild guild, TextChannel channel, String chanName) {
         //Scans through the VoiceChannels in this Guild, looking for one with a case-insensitive matching name.
         voiceChannel = guild.getVoiceChannels().stream().filter(
                 vChan -> vChan.getName().equalsIgnoreCase(chanName))
@@ -781,7 +829,7 @@ class eMusic extends ListenerAdapter {
      *
      * @param u Used to get the user of the command and their private message channel.
      */
-    private void sendCommands(User u){
+    private void sendCommands(User u) {
         PrivateChannel pm = u.openPrivateChannel().complete();
         pm.sendMessage(
                 "__**Commands:**__\n" +
@@ -802,6 +850,7 @@ class eMusic extends ListenerAdapter {
                 "-remove [Position in Queue] // Removes the specified track from the queue. " +
                     "If a position is not given, it will remove the first track in the queue.\n" +
                 "-reset // Stops the current track, clears the queue, and disconnects the bot from the voice channel.\n" +
+                "-radio [Station URL | Search Term] // Queues a radio station based on the term or url.\n" +
                 "?eMusic // Messages the user a list of commands.\n" +
                 "```"
         ).queue();
