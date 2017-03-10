@@ -333,14 +333,18 @@ class eMusic extends ListenerAdapter {
      * @param track The song to be queued.
      */
     private void play(Message command, GuildMusicManager musicManager, AudioTrack track) {
-
         // Handles cases where a link or local file weren't found in load()
+        String[] args = command.getContent().split(" ");
         if (!trackIsLoaded || track == null) {
-            String[] parts = command.getContent().split(" ");
-            if (parts.length > 1) {
+            if (args.length > 1) {
                 TextChannel channel = command.getTextChannel();
-                String trackURL = parts[1];
-                if (!trackURL.contains("https://") || !trackURL.contains("http://")) {
+                String trackURL = args[1];
+                if (args[0].equalsIgnoreCase("-radio"))
+                    channel.sendMessage(
+                            "Found **" + getStation(trackURL) + "** in database, but it could not be loaded!" +
+                                    "\nPerhaps it is an unsupported file type?"
+                    ).queue();
+                else if (!trackURL.contains("https://") || !trackURL.contains("http://")) {
                     String youtubeLink = ("https://www.youtube.com/watch?v=" + YouTubeSearch.videoIdSearch(trackURL));
                     playerManager.loadItemOrdered(musicManager, youtubeLink, new AudioLoadResultHandler() {
                         @Override
@@ -371,7 +375,9 @@ class eMusic extends ListenerAdapter {
 
                         @Override
                         public void noMatches() {
-                            channel.sendMessage("No matches for **" + trackURL + "**.").queue();
+                            channel.sendMessage(
+                                    "Could not load **" + trackURL + "**\nPerhaps it is an unsupported file type?"
+                            ).queue();
                         }
 
                         @Override
@@ -381,7 +387,6 @@ class eMusic extends ListenerAdapter {
                     });
                     return;
                 }
-                command.getTextChannel().sendMessage("Could not load a track for **" + trackURL + "**.").queue();
             }
         }
 
@@ -390,7 +395,7 @@ class eMusic extends ListenerAdapter {
             checkVoiceConnection(command.getGuild(), command.getTextChannel(), command);
             musicManager.scheduler.queue(track);
         }
-        else
+        else if(!args[0].equalsIgnoreCase("-radio"))
             command.getTextChannel().sendMessage("Nothing to play or resume!").queue();
     }
 
@@ -683,11 +688,23 @@ class eMusic extends ListenerAdapter {
         if(station.toLowerCase().contains("http://") || station.toLowerCase().contains("https://"))
             load(message, channel, station);
         else {
-            for(String key : radioStations.keySet())
-                if(key.toLowerCase().contains(station.toLowerCase()))
-                    station = radioStations.get(key);
-            load(message, channel, station);
+            String original = station;
+            station = getStation(station);
+            if(station != null && !station.equalsIgnoreCase(original)) {
+                load(message, channel, station);
+            }
+            else
+                channel.sendMessage(
+                        "There was no radio station found with **" + original + "** in the database"
+                ).queue();
         }
+    }
+
+    private String getStation(String station) {
+        for(String key : radioStations.keySet())
+            if(key.toLowerCase().contains(station.toLowerCase()))
+                return radioStations.get(key);
+        return null;
     }
 
     /**
