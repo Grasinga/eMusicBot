@@ -71,7 +71,10 @@ public class TrackScheduler extends AudioEventAdapter {
      * @return The next {@link AudioTrack} in the queue.
      */
     AudioTrack getNextTrack() {
-        return queue.get(0);
+        if(queue.size() > 0)
+            return queue.get(0);
+        else
+            return null;
     }
 
     @Override

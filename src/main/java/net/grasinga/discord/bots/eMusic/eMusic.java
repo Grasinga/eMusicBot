@@ -232,11 +232,11 @@ class eMusic extends ListenerAdapter {
                 case "-nowplaying":
                     nowPlaying(channel);
                     break;
-                case "-list":
-                    playlist(channel);
+                case "-queue":
+                    currentQueue(channel);
                     break;
-                case "-playlist":
-                    playlist(channel);
+                case "-list":
+                    currentQueue(channel);
                     break;
                 case "-skip":
                     skip(channel);
@@ -262,7 +262,7 @@ class eMusic extends ListenerAdapter {
                 default:
                     break;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             // Let the command user know there was an error with the command used then notify bot maintenance.
             commandException(e,guild,channel,message);
         }
@@ -299,7 +299,8 @@ class eMusic extends ListenerAdapter {
                         + "** (first track of playlist ***" + playlist.getName() + "***).").queue();
 
                 setTrackLoaded(true);
-                play(command, musicManager, firstTrack);
+                for(AudioTrack track : playlist.getTracks())
+                    play(command, musicManager, track);
             }
 
             @Override
@@ -372,8 +373,8 @@ class eMusic extends ListenerAdapter {
             }
         }
 
-        currentAudioTrack = track;
         if(trackIsLoaded) {
+            currentAudioTrack = musicManager.getPlayer().getPlayingTrack();
             checkVoiceConnection(command.getGuild(), command.getTextChannel(), command);
             musicManager.scheduler.queue(track);
         }
@@ -392,6 +393,7 @@ class eMusic extends ListenerAdapter {
             channel.sendMessage("Playback is already paused. Use -play or -resume to start playback.").queue();
         else if(trackIsLoaded) {
             player.setPaused(true);
+            playbackFinished(false);
             channel.sendMessage("Playback has been paused.").queue();
         }
         else
@@ -405,6 +407,21 @@ class eMusic extends ListenerAdapter {
     private void resume(TextChannel channel) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         AudioPlayer player = musicManager.getPlayer();
+        if(trackIsLoaded) {
+            long guildId = Long.parseLong(channel.getGuild().getId());
+            currentAudioTrack = musicManagers.get(guildId).getPlayer().getPlayingTrack();
+        }
+        if (player.getPlayingTrack() == null && !player.isPaused()) {
+            if(musicManager.scheduler.getNextTrack() != null) {
+                currentAudioTrack = musicManager.scheduler.getNextTrack();
+                player.startTrack(currentAudioTrack, false);
+                channel.sendMessage("Now resuming with **" + currentAudioTrack.getInfo().title + "**.").queue();
+            }
+            else {
+                channel.sendMessage("Nothing in queue to resume!").queue();
+                return;
+            }
+        }
         if (!player.isPaused()) {
             channel.sendMessage("Playback is not paused.").queue();
             return;
@@ -430,7 +447,7 @@ class eMusic extends ListenerAdapter {
             channel.sendMessage("Skipped to the next track.").queue();
         }
         else
-            channel.sendMessage("There are no tracks in the playlist to skip to.").queue();
+            channel.sendMessage("There are no tracks in the queue to skip to.").queue();
     }
 
     /**
@@ -459,6 +476,10 @@ class eMusic extends ListenerAdapter {
      * @param channel {@link TextChannel} the command was used. Needed for output.
      */
     private void nowPlaying(TextChannel channel) {
+        if(trackIsLoaded) {
+            long guildId = Long.parseLong(channel.getGuild().getId());
+            currentAudioTrack = musicManagers.get(guildId).getPlayer().getPlayingTrack();
+        }
         if(currentAudioTrack != null)
             channel.sendMessage(
                     "**Song:** " + currentAudioTrack.getInfo().title
@@ -472,10 +493,10 @@ class eMusic extends ListenerAdapter {
      * Display's all the currently queued songs.
      * @param channel {@link TextChannel} the command was used. Needed for output.
      */
-    private void playlist(TextChannel channel) {
+    private void currentQueue(TextChannel channel) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         if(musicManager.scheduler.queue.size() < 1) {
-            channel.sendMessage("There is currently no playlist.").queue();
+            channel.sendMessage("There is currently no queue.").queue();
             return;
         }
 
@@ -490,10 +511,33 @@ class eMusic extends ListenerAdapter {
             time = calculateDurationTime(duration);
             list += "\n" + title + " " + time;
         }
-        String playList = "__**Current Playlist " + calculateDurationTime(total) + ":**__";
-        playList += list;
+        String queue = "__**Current Queue " + calculateDurationTime(total) + ":**__\n";
+        queue += list;
 
-        channel.sendMessage(playList).queue();
+        if(queue.length() > 2000)
+            splitMessage(queue, channel);
+        else
+            channel.sendMessage(queue).queue();
+    }
+
+    /**
+     * Allows for messages over 2000 characters be sent.
+     * @param longMessage {@link Message} that is over 2000 characters.
+     * @param channel {@link TextChannel} that the split up {@link Message} will be sent to.
+     */
+    private void splitMessage(String longMessage, TextChannel channel) {
+        String[] lines = longMessage.split("\n");
+        String message = "";
+        for(String s : lines) {
+            if((message.length() + s.length()) < 2000)
+                message += s + "\n";
+            else {
+                channel.sendMessage(message).queue();
+                message = "";
+            }
+        }
+        if(message.length() > 0)
+            channel.sendMessage(message).queue();
     }
 
     /**
@@ -534,28 +578,28 @@ class eMusic extends ListenerAdapter {
     }
 
     /**
-     * Clears the current playlist.
+     * Clears the current currentQueue.
      * @param channel {@link TextChannel} the command was used. Needed for output.
      */
     private void clear(TextChannel channel) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         if(musicManager.scheduler.queue.size() < 1) {
-            channel.sendMessage("No playlist to be cleared.").queue();
+            channel.sendMessage("No queue to clear.").queue();
             return;
         }
         musicManager.scheduler.queue.clear();
-        channel.sendMessage("The current playlist has been cleared.").queue();
+        channel.sendMessage("The current queue has been cleared.").queue();
     }
 
     /**
-     * Removes the specified track from the current playlist.
+     * Removes the specified track from the current currentQueue.
      * @param message The {@link Message} that contains the specified track.
      * @param channel {@link TextChannel} the command was used. Needed for output.
      */
     private void remove(Message message, TextChannel channel) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         if(musicManager.scheduler.queue.size() < 1) {
-            channel.sendMessage("No playlist; no tracks to remove.").queue();
+            channel.sendMessage("No queue; no tracks to remove.").queue();
             return;
         }
         String[] parts = message.getContent().split(" ");
@@ -563,7 +607,7 @@ class eMusic extends ListenerAdapter {
         if(musicManager.scheduler.queue.size() == 1 || parts.length == 1) {
             String title = musicManager.scheduler.queue.get(0).getInfo().title;
             musicManager.scheduler.queue.remove(0);
-            channel.sendMessage("**" + title + "** has been removed from the playlist.").queue();
+            channel.sendMessage("**" + title + "** has been removed from the queue.").queue();
         }
         else if(parts.length > 1) {
             int pos;
@@ -576,17 +620,17 @@ class eMusic extends ListenerAdapter {
             if(pos < musicManager.scheduler.queue.size()) {
                 String title = musicManager.scheduler.queue.get(pos).getInfo().title;
                 musicManager.scheduler.queue.remove(pos);
-                channel.sendMessage("**" + title + "** has been removed from the playlist.").queue();
+                channel.sendMessage("**" + title + "** has been removed from the queue.").queue();
             }
             else
                 channel.sendMessage("There is no song at position " + (pos + 1) + ".").queue();
         }
         else
-            channel.sendMessage("Usage: -remove [Position in playlist]").queue();
+            channel.sendMessage("Usage: -remove [Position in Queue]").queue();
     }
 
     /**
-     * Stops the current track, clears the playlist, and disconnects the bot from the voice channel.
+     * Stops the current track, clears the currentQueue, and disconnects the bot from the voice channel.
      * @param channel {@link TextChannel} the command was used. Needed for output.
      */
     private void reset(TextChannel channel) {
@@ -752,12 +796,12 @@ class eMusic extends ListenerAdapter {
                 "-skip // Skips to the next track.\n" +
                 "-previous // Skips to the last track.\n" +
                 "-nowplaying // Displays the current song's info.\n" +
-                "-list | -playlist // Displays the current playlist if there is one.\n" +
-                "-stop // Stops the current track and ends playback; keeps the playlist.\n" +
-                "-clear // Clears the playlist.\n" +
-                "-remove [Position in playlist] // Removes the specified track from the playlist. " +
-                    "If a position is not given, it will remove the first track in the playlist.\n" +
-                "-reset // Stops the current track, clears the playlist, and disconnects the bot from the voice channel.\n" +
+                "-queue | -list // Displays the current queue if there is one.\n" +
+                "-stop // Stops the current track and ends playback; keeps the queue.\n" +
+                "-clear // Clears the queue.\n" +
+                "-remove [Position in Queue] // Removes the specified track from the queue. " +
+                    "If a position is not given, it will remove the first track in the queue.\n" +
+                "-reset // Stops the current track, clears the queue, and disconnects the bot from the voice channel.\n" +
                 "?eMusic // Messages the user a list of commands.\n" +
                 "```"
         ).queue();
