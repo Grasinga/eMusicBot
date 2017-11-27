@@ -1,3 +1,6 @@
+# Unsupported
+<a href="https://github.com/EtherealNetwork/eMusic">New eMusic</a>
+
 # Discord Bot - eMusic
 Music bot used on <a href="http://ethereal.network/discord">Ethereal Network's Discord.</a>
 
